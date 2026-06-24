@@ -11,6 +11,7 @@ Luego abrir: http://localhost:5000
 import sys
 import os
 from datetime import datetime
+from bson import ObjectId
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
@@ -55,6 +56,8 @@ def create_app(db):
     # Serializacion de documentos MongoDB (datetime → ISO string)
     # -----------------------------------------------------------------------
     def serial(obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
         if isinstance(obj, datetime):
             return obj.isoformat()
         if isinstance(obj, list):
