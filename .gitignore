@@ -1,3 +1,10 @@
+# IA, agentes, etc.
+docs/
+.agents/
+AGENTS.MD
+CONTEXT.MD
+skills-lock.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
