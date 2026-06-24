@@ -1,0 +1,506 @@
+/* =========================================================
+   VitalCore — Estilos principales
+   Tema oscuro médico
+   ========================================================= */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0d0e1a;
+  --bg-card:     #13152b;
+  --bg-elevated: #1a1d38;
+  --border:      #252847;
+  --border-soft: #1e2140;
+
+  --blue:        #4f9cf9;
+  --blue-dim:    #1e3a6e;
+  --green:       #34d399;
+  --green-dim:   #0d3b25;
+  --red:         #f87171;
+  --red-dim:     #4b1616;
+  --amber:       #fbbf24;
+  --amber-dim:   #422c04;
+  --purple:      #a78bfa;
+  --purple-dim:  #2d1f5e;
+
+  --text:        #e2e4f0;
+  --text-muted:  #6b7199;
+  --text-soft:   #9fa3c8;
+
+  --radius:      10px;
+  --radius-lg:   16px;
+  --shadow:      0 4px 24px rgba(0,0,0,.45);
+
+  /* colores por especialidad */
+  --esp-cardiologia:    #f87171;
+  --esp-endocrinologia: #fbbf24;
+  --esp-general:        #4f9cf9;
+  --esp-neumologia:     #34d399;
+  --esp-geriatria:      #a78bfa;
+}
+
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--blue);
+  flex-shrink: 0;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: .85rem;
+  flex: 1;
+}
+
+/* indicador de estado de conexión */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-dot.connecting { background: var(--amber); animation: pulse 1.2s infinite; }
+.status-dot.connected  { background: var(--green); }
+.status-dot.error      { background: var(--red); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .3; }
+}
+
+/* =========================================================
+   TABS
+   ========================================================= */
+.tab-nav {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .85rem 1.2rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-size: .875rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+  position: relative;
+}
+
+.tab-btn:hover      { color: var(--text-soft); }
+.tab-btn.active     { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-icon           { font-size: 1rem; }
+
+.badge {
+  background: var(--red);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  margin-left: 2px;
+}
+
+/* =========================================================
+   MAIN / PANELS
+   ========================================================= */
+main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.panel-header { margin-bottom: 1.5rem; }
+.panel-header h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: .3rem; }
+.panel-header p  { color: var(--text-muted); font-size: .9rem; }
+
+/* =========================================================
+   CONTROLES / FORMULARIOS
+   ========================================================= */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.field { display: flex; flex-direction: column; gap: .4rem; min-width: 180px; }
+.field label { font-size: .8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+
+select, input[type="date"], input[type="number"] {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: .55rem .85rem;
+  font-size: .9rem;
+  outline: none;
+  transition: border-color .15s;
+  width: 100%;
+}
+select:focus, input:focus { border-color: var(--blue); }
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
+.btn-primary, .btn-danger {
+  padding: .6rem 1.4rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+.btn-primary         { background: var(--blue);     color: #fff; }
+.btn-danger          { background: var(--red);      color: #fff; }
+.btn-primary:hover,
+.btn-danger:hover    { opacity: .85; }
+.btn-primary:active,
+.btn-danger:active   { transform: scale(.97); }
+
+/* =========================================================
+   AREA DE RESULTADOS
+   ========================================================= */
+.result-area { margin-top: .5rem; }
+
+/* placeholder de carga */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  color: var(--text-muted);
+  padding: 2rem 0;
+}
+.spinner {
+  width: 20px; height: 20px;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* mensaje vacío */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+
+/* =========================================================
+   TABLAS
+   ========================================================= */
+.table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+thead th {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  padding: .75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid var(--border-soft); transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg-elevated); }
+tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
+
+/* =========================================================
+   CARDS DE PACIENTE (tab 3)
+   ========================================================= */
+.patient-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.patient-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  transition: border-color .15s;
+}
+.patient-card:hover { border-color: var(--blue-dim); }
+
+.patient-name { font-weight: 700; font-size: 1rem; margin-bottom: .25rem; }
+.patient-meta { font-size: .8rem; color: var(--text-muted); margin-bottom: .9rem; }
+
+.vital-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .4rem .75rem;
+  font-size: .85rem;
+  width: 100%;
+  margin-top: .5rem;
+}
+.vital-badge .vb-label { color: var(--text-muted); font-size: .75rem; }
+.vital-badge .vb-value { font-weight: 700; font-size: 1rem; }
+.vital-badge .vb-unit  { color: var(--text-muted); font-size: .75rem; }
+.vital-badge.critico   { border-color: var(--red); background: var(--red-dim); }
+.vital-badge.normal    { border-color: var(--green-dim); }
+
+/* =========================================================
+   ALERTAS (tab 4)
+   ========================================================= */
+.umbrales-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.umbrales-title {
+  display: block;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+.umbrales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.umbral-item label { font-size: .8rem; color: var(--text-soft); display: block; margin-bottom: .35rem; }
+.unit { color: var(--text-muted); }
+.umbral-input-row { display: flex; align-items: center; gap: .4rem; }
+.dir-label { color: var(--amber); font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+.umbral-input-row input { max-width: 100px; }
+
+.alerts-list { display: flex; flex-direction: column; gap: .75rem; }
+
+.alert-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--red);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+}
+.alert-icon { font-size: 1.5rem; flex-shrink: 0; }
+.alert-body { flex: 1; }
+.alert-patient { font-weight: 700; font-size: 1rem; }
+.alert-detail  { font-size: .82rem; color: var(--text-muted); margin-top: .2rem; }
+.alert-value {
+  text-align: right;
+  flex-shrink: 0;
+}
+.alert-value .val  { font-size: 1.5rem; font-weight: 800; color: var(--red); }
+.alert-value .unit { font-size: .75rem; color: var(--text-muted); display: block; }
+.alert-value .lim  { font-size: .75rem; color: var(--text-muted); }
+
+/* =========================================================
+   ESTADÍSTICAS TELEMETRÍA
+   ========================================================= */
+.stats-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.5rem;
+  min-width: 120px;
+  text-align: center;
+  flex: 1;
+}
+.stat-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: .25rem; }
+.stat-value { font-size: 1.6rem; font-weight: 800; color: var(--blue); }
+.stat-unit  { font-size: .75rem; color: var(--text-muted); }
+
+/* =========================================================
+   RED DE REFERIDOS (tab 5)
+   ========================================================= */
+.referral-network {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 2rem 0;
+}
+
+.rn-node {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: .9rem 1.5rem;
+  min-width: 260px;
+  max-width: 400px;
+  width: 100%;
+}
+.rn-node.paciente   { border-color: var(--blue);    background: var(--blue-dim); }
+.rn-node.principal  { border-color: var(--green);   background: var(--green-dim); }
+.rn-node.especialista { border-color: var(--purple); background: var(--purple-dim); }
+
+.rn-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.07);
+}
+.rn-info { flex: 1; }
+.rn-name { font-weight: 700; font-size: .95rem; }
+.rn-sub  { font-size: .78rem; color: var(--text-soft); margin-top: .1rem; }
+.rn-badge {
+  font-size: .7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  background: rgba(255,255,255,.1);
+  white-space: nowrap;
+}
+
+/* conectores verticales */
+.rn-connector {
+  width: 2px;
+  height: 32px;
+  background: var(--border);
+  margin: 0 auto;
+  position: relative;
+}
+.rn-connector::after {
+  content: '';
+  position: absolute;
+  bottom: -6px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--border);
+}
+
+/* fila horizontal de especialistas */
+.rn-specialists-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0;
+}
+.rn-specialists-row .rn-node {
+  min-width: 220px;
+  max-width: 280px;
+  flex: 1;
+}
+
+.rn-section-label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  margin: .5rem 0 .75rem;
+}
+
+/* especialidad colores */
+.esp-Cardiologia    { color: var(--esp-cardiologia); }
+.esp-Endocrinologia { color: var(--esp-endocrinologia); }
+.esp-MedicinaGeneral{ color: var(--esp-general); }
+.esp-Neumologia     { color: var(--esp-neumologia); }
+.esp-Geriatria      { color: var(--esp-geriatria); }
+
+/* =========================================================
+   CHIPS / TAGS
+   ========================================================= */
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+}
+.chip-blue   { background: var(--blue-dim);   color: var(--blue); }
+.chip-green  { background: var(--green-dim);  color: var(--green); }
+.chip-red    { background: var(--red-dim);    color: var(--red); }
+.chip-amber  { background: var(--amber-dim);  color: var(--amber); }
+.chip-purple { background: var(--purple-dim); color: var(--purple); }
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+.text-muted  { color: var(--text-muted); }
+.text-green  { color: var(--green); }
+.text-red    { color: var(--red); }
+.text-amber  { color: var(--amber); }
+.fw-bold     { font-weight: 700; }
+.mt-1        { margin-top: .5rem; }
+.count-label { font-size: .8rem; color: var(--text-muted); margin-bottom: 1rem; }

@@ -1,0 +1,4 @@
+-Ejecutar: py -m pip install -r requirements.txt en el directorio dónde esté requirements.txt
+-Inicia MongoDB en localhost:27017 (el instalador de MongoDB crea un servicio de Windows que puedes activar con net start MongoDB o desde Servicios).
+-Poblar BD: python ingest_vitalcore.py
+-Levantar servidor: python server.py
