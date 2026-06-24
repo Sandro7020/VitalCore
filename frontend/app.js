@@ -9,6 +9,7 @@ const API = 'http://localhost:5000/api';
 // cache de datos para dropdowns
 let todosLosPacientes = [];
 let todosLosMedicos   = [];
+let umbralesSensores  = {};
 
 // =========================================================
 // INICIALIZACIÓN
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   inicializarTabs();
   setFechasDefecto();
   verificarConexion();
+  cargarUmbrales();
   cargarDropdowns();
 });
 
@@ -41,6 +43,14 @@ function setFechasDefecto() {
 
   document.getElementById('t-desde').value = hace6m.toISOString().slice(0, 10);
   document.getElementById('t-hasta').value = hoy.toISOString().slice(0, 10);
+}
+
+async function cargarUmbrales() {
+  try {
+    umbralesSensores = await apiFetch('/thresholds');
+  } catch (e) {
+    console.warn('No se pudieron cargar umbrales:', e.message);
+  }
 }
 
 async function cargarDropdowns() {
@@ -174,7 +184,7 @@ async function buscarTelemetria() {
         </div>
         <div class="stat-card">
           <div class="stat-label">Máximo</div>
-          <div class="stat-value" style="color:${s.maximo > (umbral?.val ?? Infinity) ? 'var(--red)' : 'var(--blue)'}">${s.maximo}</div>
+          <div class="stat-value" style="color:${s.maximo > (umbral?.umbral_critico ?? Infinity) ? 'var(--red)' : 'var(--blue)'}">${s.maximo}</div>
           <div class="stat-unit">${lecturas[0]?.unidad ?? ''}</div>
         </div>
         <div class="stat-card">
@@ -484,19 +494,15 @@ function formatFechaHora(iso) {
   return new Date(iso).toLocaleString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-// Umbrales definidos en el script de ingesta (referencia local)
-const umbralesSensores = {
-  frecuencia_cardiaca: { val: 120, dir: 'mayor' },
-  glucosa:             { val: 180, dir: 'mayor' },
-  saturacion_oxigeno:  { val: 92,  dir: 'menor' },
-  presion_sistolica:   { val: 140, dir: 'mayor' },
-  horas_sueno:         null,
-};
+// Umbrales cargados desde /api/thresholds (fuente de verdad: config/thresholds.py)
+// umbralesSensores es un objeto global llenado por cargarUmbrales()
 
 function esCritico(sensor, valor) {
   const u = umbralesSensores[sensor];
-  if (!u) return false;
-  return u.dir === 'mayor' ? valor > u.val : valor < u.val;
+  if (!u || !u.umbral_critico) return false;
+  return u.umbral_critico > u.min
+    ? valor > u.umbral_critico
+    : valor < u.umbral_critico;
 }
 
 function iconoSensor(sensor) {

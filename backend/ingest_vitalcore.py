@@ -20,17 +20,17 @@ Uso:
 """
 
 import random
+import sys
+import os
 from datetime import datetime, timedelta
 
 from faker import Faker
-from pymongo import MongoClient, ASCENDING, DESCENDING
+from pymongo import ASCENDING, DESCENDING
 
-# ---------------------------------------------------------------------------
-# CONFIGURACION GENERAL
-# ---------------------------------------------------------------------------
-
-MONGO_URI = "mongodb://localhost:27017/"
-DB_NAME = "vitalcore"
+# Agregar el directorio raiz al path para importar config
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from config.settings import MONGO_URI, DB_NAME, get_client
+from config.thresholds import RANGOS_SENSORES
 
 NUM_PACIENTES = 500
 NUM_MEDICOS = 50
@@ -45,16 +45,6 @@ ESPECIALIDADES = [
     "Neumologia",
     "Geriatria",
 ]
-
-# Rangos medicamente plausibles por tipo de sensor.
-# (valor_min, valor_max, unidad) - usados para generar lecturas realistas.
-RANGOS_SENSORES = {
-    "frecuencia_cardiaca": {"min": 50, "max": 140, "unidad": "bpm", "umbral_critico": 120},
-    "glucosa": {"min": 60, "max": 250, "unidad": "mg/dL", "umbral_critico": 180},
-    "saturacion_oxigeno": {"min": 88, "max": 100, "unidad": "%", "umbral_critico": 92},
-    "presion_sistolica": {"min": 90, "max": 180, "unidad": "mmHg", "umbral_critico": 140},
-    "horas_sueno": {"min": 2, "max": 10, "unidad": "horas", "umbral_critico": None},
-}
 
 # Condiciones cronicas plausibles que influyen en los rangos de telemetria.
 CONDICIONES_CRONICAS = [
@@ -194,7 +184,7 @@ def generar_lecturas_para_paciente(paciente: dict, num_lecturas: int) -> list:
 
 def main():
     print("Conectando a MongoDB...")
-    client = MongoClient(MONGO_URI)
+    client = get_client()
     db = client[DB_NAME]
 
     # Limpieza de colecciones previas (idempotencia para re-ejecutar el script)
