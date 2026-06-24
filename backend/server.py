@@ -25,6 +25,7 @@ from backend.db import (
     ConsultaRepository,
     TelemetriaRepository,
 )
+from backend.alert_evaluator import AlertEvaluator
 
 # ---------------------------------------------------------------------------
 # Repositories (module-level globals, set by create_app)
@@ -33,18 +34,32 @@ patient_repo: PatientRepository = None
 doctor_repo: DoctorRepository = None
 consulta_repo: ConsultaRepository = None
 telemetria_repo: TelemetriaRepository = None
+alert_evaluator: AlertEvaluator = None
 
 
 # ---------------------------------------------------------------------------
 # Factory
 # ---------------------------------------------------------------------------
 def create_app(db):
-    global patient_repo, doctor_repo, consulta_repo, telemetria_repo
+    global patient_repo, doctor_repo, consulta_repo, telemetria_repo, alert_evaluator
 
     patient_repo = PatientRepository(db)
     doctor_repo = DoctorRepository(db)
     consulta_repo = ConsultaRepository(db)
     telemetria_repo = TelemetriaRepository(db)
+    
+    # Create thresholds with direction for all sensors
+    thresholds_with_direction = {}
+    for sensor, config in RANGOS_SENSORES.items():
+        # Get direction from UMBRALES_DEFAULT if exists, else default to "mayor"
+        direction = UMBRALES_DEFAULT.get(sensor, {}).get("direccion", "mayor")
+        thresholds_with_direction[sensor] = {
+            "umbral_critico": config["umbral_critico"],
+            "direccion": direction,
+            "min": config["min"],
+            "max": config["max"]
+        }
+    alert_evaluator = AlertEvaluator(thresholds_with_direction)
 
     _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     _frontend = os.path.join(_root, "frontend")
@@ -100,8 +115,31 @@ def create_app(db):
 
     @app.route("/api/thresholds")
     def listar_umbrales():
-        """Umbrales de alerta criticos (fuente de verdad: config/thresholds.py)."""
-        return ok(RANGOS_SENSORES)
+        """Umbrales de alerta críticos con dirección (fuente de verdad: AlertEvaluator)."""
+        return ok(alert_evaluator.get_all_thresholds())
+
+    # -----------------------------------------------------------------------
+    # Endpoint: Evaluar una lectura vital contra umbrales
+    # -----------------------------------------------------------------------
+    @app.route("/api/evaluate-reading")
+    def evaluate_reading():
+        """Evalúa una lectura vital contra umbrales configurados."""
+        sensor = request.args.get("sensor")
+        value = request.args.get("value")
+        
+        if not sensor or not value:
+            return err("Parámetros 'sensor' y 'value' requeridos", 400)
+        
+        try:
+            value = float(value)
+        except ValueError:
+            return err("El parámetro 'value' debe ser un número", 400)
+        
+        try:
+            result = alert_evaluator.evaluate_reading(sensor, value)
+            return ok(result)
+        except Exception as e:
+            return err(str(e))
 
     # -----------------------------------------------------------------------
     # CONSULTA 1: Historial clinico completo de un paciente (cronologico)
@@ -153,44 +191,43 @@ def create_app(db):
     # -----------------------------------------------------------------------
     @app.route("/api/alertas")
     def alertas():
-        umbrales = {
-            "frecuencia_cardiaca": {
-                "valor": float(request.args.get("fc",      UMBRALES_DEFAULT["frecuencia_cardiaca"]["valor"])),
-                "direccion": "mayor"
-            },
-            "glucosa": {
-                "valor": float(request.args.get("glucosa", UMBRALES_DEFAULT["glucosa"]["valor"])),
-                "direccion": "mayor"
-            },
-            "saturacion_oxigeno": {
-                "valor": float(request.args.get("spo2",    UMBRALES_DEFAULT["saturacion_oxigeno"]["valor"])),
-                "direccion": "menor"
-            },
-            "presion_sistolica": {
-                "valor": float(request.args.get("pa",      UMBRALES_DEFAULT["presion_sistolica"]["valor"])),
-                "direccion": "mayor"
-            },
-        }
-
+        """Alertas cuando un vital supera el umbral crítico.
+        Usa AlertEvaluator como fuente única de verdad para dirección y umbrales."""
         try:
             alertas_result = []
-            for sensor, cfg in umbrales.items():
-                op = "$gt" if cfg["direccion"] == "mayor" else "$lt"
-                pacientes = patient_repo.find_alert_patients(sensor, op, cfg["valor"])
+            # Iterate over all sensors in the evaluator
+            for sensor, config in alert_evaluator.get_all_thresholds().items():
+                # Get default threshold value (can be overridden via request args)
+                default_threshold = config.get("umbral_critico")
+                if default_threshold is None:
+                    continue  # Skip sensors without threshold (e.g., horas_sueno)
+                
+                # Allow threshold override via query parameters
+                param_map = {
+                    "frecuencia_cardiaca": "fc",
+                    "glucosa": "glucosa",
+                    "saturacion_oxigeno": "spo2",
+                    "presion_sistolica": "pa",
+                    "horas_sueno": "hs"
+                }
+                param_name = param_map.get(sensor, sensor)
+                threshold_value = float(request.args.get(param_name, default_threshold))
+                
+                # Use evaluator to get direction
+                direction = config["direccion"]
+                op = "$gt" if direction == "mayor" else "$lt"
+                
+                # Query patients using MongoDB operator
+                pacientes = patient_repo.find_alert_patients(sensor, op, threshold_value)
+                
                 for p in pacientes:
-                    ulv = p.get("ultima_lectura_vital", {})
-                    alertas_result.append({
-                        "paciente_id":  p["_id"],
-                        "nombre":        p["nombre"],
-                        "condicion":     p.get("condicion_cronica"),
-                        "medico_id":     p.get("medico_principal_id"),
-                        "sensor":        sensor,
-                        "valor":         ulv.get("valor"),
-                        "unidad":        ulv.get("unidad"),
-                        "umbral":        cfg["valor"],
-                        "direccion":     cfg["direccion"],
-                        "timestamp":     ulv.get("timestamp"),
-                    })
+                    # Use evaluator to evaluate the patient's reading
+                    alerts = alert_evaluator.evaluate_patient(p)
+                    for alert in alerts:
+                        # Override threshold with request-specific value
+                        alert["umbral"] = threshold_value
+                        alertas_result.append(alert)
+            
             alertas_result.sort(key=lambda x: x.get("timestamp") or "", reverse=True)
             return ok(alertas_result)
         except Exception as e:

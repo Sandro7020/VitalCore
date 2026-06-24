@@ -2,6 +2,7 @@
 docs/
 .agents/
 AGENTS.MD
+CONTEXT.MD
 skills-lock.json
 
 # Byte-compiled / optimized / DLL files

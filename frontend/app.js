@@ -500,9 +500,13 @@ function formatFechaHora(iso) {
 function esCritico(sensor, valor) {
   const u = umbralesSensores[sensor];
   if (!u || !u.umbral_critico) return false;
-  return u.umbral_critico > u.min
-    ? valor > u.umbral_critico
-    : valor < u.umbral_critico;
+  // Use explicit direction from threshold config
+  const direction = u.direccion || 'mayor';
+  if (direction === 'mayor') {
+    return valor > u.umbral_critico;
+  } else { // direction === 'menor'
+    return valor < u.umbral_critico;
+  }
 }
 
 function iconoSensor(sensor) {
