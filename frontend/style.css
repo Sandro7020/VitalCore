@@ -504,3 +504,85 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
 .fw-bold     { font-weight: 700; }
 .mt-1        { margin-top: .5rem; }
 .count-label { font-size: .8rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+/* =========================================================
+   KPI 2 — SALUD DEL PACIENTE
+   ========================================================= */
+.salud-header { margin-bottom: 1.25rem; }
+.salud-patient-name { font-weight: 700; font-size: 1.15rem; margin-bottom: .2rem; }
+.salud-summary { display: flex; gap: .5rem; margin-top: .5rem; }
+
+.row-critical { background: var(--red-dim); }
+
+/* =========================================================
+   KPI 3 — PACIENTES POR RIESGO
+   ========================================================= */
+.riesgo-summary { display: flex; gap: .5rem; margin-bottom: 1rem; }
+.riesgo-badge {
+  font-size: .8rem;
+  font-weight: 700;
+  padding: .3rem .75rem;
+  border-radius: var(--radius);
+  margin-top: .5rem;
+  display: inline-block;
+}
+.riesgo-alto { border-color: var(--red); }
+.riesgo-bajo { border-color: var(--green-dim); }
+
+/* =========================================================
+   AUTO-REFRESH TOGGLE
+   ========================================================= */
+.auto-refresh-box {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-top: 1rem;
+  padding: .75rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.auto-refresh-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+.auto-refresh-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.auto-refresh-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 999px;
+  transition: background .2s;
+}
+.auto-refresh-slider::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: var(--text);
+  border-radius: 50%;
+  transition: transform .2s;
+}
+.auto-refresh-toggle input:checked + .auto-refresh-slider {
+  background: var(--green);
+}
+.auto-refresh-toggle input:checked + .auto-refresh-slider::after {
+  transform: translateX(20px);
+}
+.auto-refresh-label {
+  font-size: .85rem;
+  color: var(--text-soft);
+}
+
+/* =========================================================
+   KPI 1 — RENDIMIENTO
+   ========================================================= */
+.rendimiento-stats { display: flex; gap: .5rem; align-items: center; }

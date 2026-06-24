@@ -16,6 +16,14 @@ class TelemetriaRepository:
         }
         return list(self.collection.find(filtro).sort("timestamp", 1).limit(500))
 
+    def find_latest_by_patient(self, paciente_id, limit=20):
+        return list(
+            self.collection
+            .find({"paciente_id": paciente_id})
+            .sort("timestamp", -1)
+            .limit(limit)
+        )
+
     @staticmethod
     def compute_stats(lecturas):
         valores = [l["valor"] for l in lecturas]

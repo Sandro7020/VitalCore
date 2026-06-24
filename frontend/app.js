@@ -60,7 +60,7 @@ async function cargarDropdowns() {
       apiFetch('/medicos'),
     ]);
 
-    const selectoresPacientes = ['h-paciente', 't-paciente', 'r-paciente'];
+    const selectoresPacientes = ['h-paciente', 't-paciente', 'r-paciente', 's-paciente'];
     selectoresPacientes.forEach(id => {
       poblarSelect(id, todosLosPacientes, p => ({
         value: p._id,
@@ -68,10 +68,13 @@ async function cargarDropdowns() {
       }));
     });
 
-    poblarSelect('p-medico', todosLosMedicos, m => ({
-      value: m._id,
-      text:  `${m._id} — ${m.nombre} (${m.especialidad})`,
-    }));
+    const selectoresMedicos = ['p-medico', 'r-medico'];
+    selectoresMedicos.forEach(id => {
+      poblarSelect(id, todosLosMedicos, m => ({
+        value: m._id,
+        text:  `${m._id} — ${m.nombre} (${m.especialidad})`,
+      }));
+    });
   } catch (e) {
     console.warn('No se pudieron cargar los dropdowns:', e.message);
   }
@@ -430,6 +433,229 @@ async function buscarRedReferidos() {
 
 function paciente_principal_id(medico_principal) {
   return medico_principal ? medico_principal._id : null;
+}
+
+// =========================================================
+// KPI 2 — SALUD DEL PACIENTE
+// =========================================================
+async function buscarSaludPaciente() {
+  const pacienteId = document.getElementById('s-paciente').value;
+  const n          = document.getElementById('s-cantidad').value;
+  if (!pacienteId) return alertar('Selecciona un paciente.');
+
+  const resultado = document.getElementById('s-result');
+  resultado.innerHTML = cargando();
+
+  try {
+    const { paciente, lecturas } = await apiFetch(
+      `/paciente/${pacienteId}/lecturas-recientes?n=${n}`
+    );
+
+    if (!lecturas.length) {
+      resultado.innerHTML = sinResultados('Sin lecturas para este paciente.');
+      return;
+    }
+
+    const criticos = lecturas.filter(l => l.critico).length;
+
+    resultado.innerHTML = `
+      <div class="salud-header">
+        <div class="salud-patient-name">${paciente.nombre}</div>
+        <div class="text-muted" style="font-size:.85rem">${paciente._id} · ${paciente.condicion_cronica ?? 'Sin condicion'}</div>
+        <div class="salud-summary">
+          <span class="chip chip-blue">${lecturas.length} lecturas</span>
+          ${criticos > 0
+            ? `<span class="chip chip-red">${criticos} critica(s)</span>`
+            : '<span class="chip chip-green">Sin alertas</span>'}
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Timestamp</th>
+              <th>Sensor</th>
+              <th>Valor</th>
+              <th>Unidad</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lecturas.map((l, i) => `
+              <tr class="${l.critico ? 'row-critical' : ''}">
+                <td class="text-muted">${i + 1}</td>
+                <td>${formatFechaHora(l.timestamp)}</td>
+                <td>${iconoSensor(l.tipo_sensor)} ${labelSensor(l.tipo_sensor)}</td>
+                <td class="fw-bold ${l.critico ? 'text-red' : ''}">${l.valor}</td>
+                <td class="text-muted">${l.unidad}</td>
+                <td>${l.critico
+                  ? '<span class="chip chip-red">Critico</span>'
+                  : '<span class="chip chip-green">Normal</span>'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch (e) {
+    resultado.innerHTML = errorHTML(e.message);
+  }
+}
+
+// =========================================================
+// KPI 3 — PACIENTES POR RIESGO
+// =========================================================
+async function buscarPacientesPorRiesgo() {
+  const medicoId = document.getElementById('r-medico').value;
+  if (!medicoId) return alertar('Selecciona un medico.');
+
+  const resultado = document.getElementById('rr-result');
+  resultado.innerHTML = cargando();
+
+  try {
+    const pacientes = await apiFetch(`/medico/${medicoId}/pacientes-por-riesgo`);
+
+    if (!pacientes.length) {
+      resultado.innerHTML = sinResultados('Este medico no tiene pacientes activos.');
+      return;
+    }
+
+    const alto = pacientes.filter(p => p.riesgo >= 1).length;
+    const bajo = pacientes.length - alto;
+
+    resultado.innerHTML = `
+      <div class="riesgo-summary">
+        <span class="chip chip-blue">${pacientes.length} paciente(s)</span>
+        ${alto > 0
+          ? `<span class="chip chip-red">${alto} en riesgo</span>`
+          : ''}
+        <span class="chip chip-green">${bajo} estable(s)</span>
+      </div>
+      <div class="patient-grid">
+        ${pacientes.map(p => {
+          const ulv = p.ultima_lectura_vital;
+          const riesgoNivel = p.riesgo >= 1 ? 'alto' : 'bajo';
+          return `
+            <div class="patient-card riesgo-${riesgoNivel}">
+              <div class="patient-name">${p.nombre}</div>
+              <div class="patient-meta">
+                ${p._id} &nbsp;·&nbsp;
+                ${p.genero === 'M' ? 'Masculino' : 'Femenino'} &nbsp;·&nbsp;
+                <span class="text-muted">${p.condicion_cronica}</span>
+              </div>
+              <div class="riesgo-badge riesgo-${riesgoNivel}">
+                ${p.riesgo >= 1 ? '🔴 Riesgo alto' : '🟢 Estable'}
+              </div>
+              ${ulv ? `
+                <div class="vital-badge ${ulv.tipo_sensor && esCritico(ulv.tipo_sensor, ulv.valor) ? 'critico' : 'normal'}">
+                  <span style="font-size:1.1rem">${iconoSensor(ulv.tipo_sensor)}</span>
+                  <span style="flex:1">
+                    <span class="vb-label">${labelSensor(ulv.tipo_sensor)}</span><br>
+                    <span class="vb-value">${ulv.valor}</span>
+                    <span class="vb-unit">${ulv.unidad}</span>
+                  </span>
+                </div>
+              ` : ''}
+            </div>`;
+        }).join('')}
+      </div>`;
+  } catch (e) {
+    resultado.innerHTML = errorHTML(e.message);
+  }
+}
+
+// =========================================================
+// AUTO-REFRESH PARA ALERTAS
+// =========================================================
+let alertasAutoRefreshInterval = null;
+let alertasCountdownInterval = null;
+let alertasCountdown = 30;
+
+function toggleAutoRefreshAlertas() {
+  const toggle = document.getElementById('auto-refresh-toggle');
+  const countdownEl = document.getElementById('alertas-countdown');
+
+  if (toggle.checked) {
+    alertasCountdown = 30;
+    countdownEl.textContent = `Actualizacion en ${alertasCountdown}s`;
+    buscarAlertas();
+    alertasAutoRefreshInterval = setInterval(() => {
+      alertasCountdown = 30;
+      buscarAlertas();
+    }, 30000);
+    alertasCountdownInterval = setInterval(() => {
+      alertasCountdown--;
+      countdownEl.textContent = `Actualizacion en ${alertasCountdown}s`;
+    }, 1000);
+  } else {
+    clearInterval(alertasAutoRefreshInterval);
+    clearInterval(alertasCountdownInterval);
+    alertasAutoRefreshInterval = null;
+    alertasCountdownInterval = null;
+    countdownEl.textContent = '';
+  }
+}
+
+// =========================================================
+// KPI 1 — RENDIMIENTO
+// =========================================================
+async function cargarMetricas() {
+  const resultado = document.getElementById('rm-result');
+  resultado.innerHTML = cargando();
+
+  try {
+    const metricas = await apiFetch('/metricas');
+
+    const statsEl = document.getElementById('rendimiento-stats');
+    if (metricas.length > 0) {
+      const totalCalls = metricas.reduce((s, m) => s + m.total_llamadas, 0);
+      const avgGlobal = (metricas.reduce((s, m) => s + m.promedio_ms, 0) / metricas.length).toFixed(1);
+      statsEl.innerHTML = `
+        <span class="chip chip-blue">${totalCalls} llamadas totales</span>
+        <span class="chip chip-green">Promedio global: ${avgGlobal}ms</span>`;
+    } else {
+      statsEl.innerHTML = '<span class="chip chip-blue">Sin datos todavia</span>';
+    }
+
+    if (!metricas.length) {
+      resultado.innerHTML = sinResultados('Aun no hay datos de rendimiento. Navega por los otros tabs para generar metricas.');
+      return;
+    }
+
+    resultado.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Llamadas</th>
+              <th>Promedio</th>
+              <th>Minimo</th>
+              <th>Maximo</th>
+              <th>P95</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${metricas.map(m => {
+              const cls = m.promedio_ms < 50 ? 'text-green'
+                        : m.promedio_ms < 200 ? 'text-amber'
+                        : 'text-red';
+              return `
+                <tr>
+                  <td class="fw-bold" style="font-family:monospace;font-size:.82rem">${m.endpoint}</td>
+                  <td>${m.total_llamadas}</td>
+                  <td class="fw-bold ${cls}">${m.promedio_ms}ms</td>
+                  <td>${m.minimo_ms}ms</td>
+                  <td>${m.maximo_ms}ms</td>
+                  <td>${m.p95_ms}ms</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch (e) {
+    resultado.innerHTML = errorHTML(e.message);
+  }
 }
 
 // =========================================================

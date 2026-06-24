@@ -10,9 +10,12 @@ Luego abrir: http://localhost:5000
 
 import sys
 import os
+import time
+import threading
+from collections import defaultdict, deque
 from datetime import datetime
 from bson import ObjectId
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, g, send_from_directory
 from flask_cors import CORS
 
 # Agregar el directorio raiz al path para importar config
@@ -66,6 +69,25 @@ def create_app(db):
 
     app = Flask(__name__, static_folder=_frontend, static_url_path="")
     CORS(app)
+
+    # -----------------------------------------------------------------------
+    # Timing middleware — mide el tiempo de respuesta de cada endpoint
+    # -----------------------------------------------------------------------
+    _metricas = defaultdict(lambda: deque(maxlen=200))
+    _metricas_lock = threading.Lock()
+
+    @app.before_request
+    def _before():
+        g._t0 = time.perf_counter()
+
+    @app.after_request
+    def _after(response):
+        elapsed_ms = (time.perf_counter() - g._t0) * 1000
+        endpoint = request.path
+        with _metricas_lock:
+            _metricas[endpoint].append(round(elapsed_ms, 2))
+        response.headers["X-Response-Time"] = f"{elapsed_ms:.1f}ms"
+        return response
 
     # -----------------------------------------------------------------------
     # Serializacion de documentos MongoDB (datetime → ISO string)
@@ -256,6 +278,79 @@ def create_app(db):
                 "nodos": nodos,
             }
             return ok(red)
+        except Exception as e:
+            return err(str(e))
+
+    # -----------------------------------------------------------------------
+    # KPI 1: Metricas de rendimiento
+    # -----------------------------------------------------------------------
+    @app.route("/api/metricas")
+    def metricas():
+        """Estadisticas de tiempo de respuesta por endpoint."""
+        result = []
+        with _metricas_lock:
+            for endpoint, tiempos in _metricas.items():
+                if not tiempos:
+                    continue
+                sorted_t = sorted(tiempos)
+                n = len(sorted_t)
+                result.append({
+                    "endpoint": endpoint,
+                    "total_llamadas": n,
+                    "promedio_ms": round(sum(sorted_t) / n, 2),
+                    "minimo_ms": sorted_t[0],
+                    "maximo_ms": sorted_t[-1],
+                    "p95_ms": sorted_t[int(n * 0.95)] if n >= 2 else sorted_t[-1],
+                })
+        result.sort(key=lambda x: x["promedio_ms"], reverse=True)
+        return ok(result)
+
+    # -----------------------------------------------------------------------
+    # KPI 2: Salud del paciente — ultimas N lecturas
+    # -----------------------------------------------------------------------
+    @app.route("/api/paciente/<paciente_id>/lecturas-recientes")
+    def lecturas_recientes(paciente_id):
+        """Ultimas N lecturas de telemetria de un paciente con indicadores de riesgo."""
+        n = request.args.get("n", 20, type=int)
+        try:
+            paciente = patient_repo.find_by_id(paciente_id)
+            if not paciente:
+                return err("Paciente no encontrado", 404)
+
+            lecturas = telemetria_repo.find_latest_by_patient(paciente_id, limit=n)
+
+            for l in lecturas:
+                result_eval = alert_evaluator.evaluate_reading(l["tipo_sensor"], l["valor"])
+                l["critico"] = result_eval["is_critical"]
+                l["alert_level"] = result_eval["alert_level"]
+
+            return ok({"paciente": paciente, "lecturas": lecturas})
+        except Exception as e:
+            return err(str(e))
+
+    # -----------------------------------------------------------------------
+    # KPI 3: Pacientes por riesgo
+    # -----------------------------------------------------------------------
+    @app.route("/api/medico/<medico_id>/pacientes-por-riesgo")
+    def pacientes_por_riesgo(medico_id):
+        """Pacientes activos de un medico ordenados por nivel de riesgo."""
+        try:
+            pacientes = patient_repo.find_active_by_medico_with_risk(
+                medico_id, alert_evaluator
+            )
+            return ok(pacientes)
+        except Exception as e:
+            return err(str(e))
+
+    # -----------------------------------------------------------------------
+    # KPI 4: Mapa de alertas activas
+    # -----------------------------------------------------------------------
+    @app.route("/api/alertas-activas")
+    def alertas_activas():
+        """Pacientes con lecturas criticas activas en tiempo real."""
+        try:
+            pacientes = patient_repo.find_all_critical_patients(alert_evaluator)
+            return ok(pacientes)
         except Exception as e:
             return err(str(e))
 

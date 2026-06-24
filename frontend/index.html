@@ -41,12 +41,21 @@
     <button class="tab-btn" data-tab="referidos">
       <span class="tab-icon">🔗</span>Red de Referidos
     </button>
+    <button class="tab-btn" data-tab="salud">
+      <span class="tab-icon">🩺</span>Salud del Paciente
+    </button>
+    <button class="tab-btn" data-tab="riesgo">
+      <span class="tab-icon">🎯</span>Pacientes por Riesgo
+    </button>
+    <button class="tab-btn" data-tab="rendimiento">
+      <span class="tab-icon">⚡</span>Rendimiento
+    </button>
   </nav>
 
   <main>
 
     <!-- ================================================================
-         TAB 1 — HISTORIAL CLÍNICO
+         TAB — HISTORIAL CLÍNICO
     ================================================================ -->
     <section class="tab-panel active" id="panel-historial">
       <div class="panel-header">
@@ -66,7 +75,7 @@
     </section>
 
     <!-- ================================================================
-         TAB 2 — TELEMETRÍA
+         TAB — TELEMETRÍA
     ================================================================ -->
     <section class="tab-panel" id="panel-telemetria">
       <div class="panel-header">
@@ -104,7 +113,7 @@
     </section>
 
     <!-- ================================================================
-         TAB 3 — PACIENTES ACTIVOS
+         TAB — PACIENTES ACTIVOS
     ================================================================ -->
     <section class="tab-panel" id="panel-pacientes">
       <div class="panel-header">
@@ -124,7 +133,7 @@
     </section>
 
     <!-- ================================================================
-         TAB 4 — ALERTAS
+         TAB — ALERTAS
     ================================================================ -->
     <section class="tab-panel" id="panel-alertas">
       <div class="panel-header">
@@ -167,11 +176,20 @@
         <button class="btn-danger" onclick="buscarAlertas()">Verificar Alertas</button>
       </div>
 
+      <div class="auto-refresh-box">
+        <label class="auto-refresh-toggle">
+          <input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefreshAlertas()">
+          <span class="auto-refresh-slider"></span>
+        </label>
+        <span class="auto-refresh-label">Auto-refresh cada 30s</span>
+        <span id="alertas-countdown" class="text-muted" style="font-size:.8rem"></span>
+      </div>
+
       <div id="a-result" class="result-area"></div>
     </section>
 
     <!-- ================================================================
-         TAB 5 — RED DE REFERIDOS
+         TAB — RED DE REFERIDOS
     ================================================================ -->
     <section class="tab-panel" id="panel-referidos">
       <div class="panel-header">
@@ -188,6 +206,69 @@
         <button class="btn-primary" onclick="buscarRedReferidos()">Visualizar Red</button>
       </div>
       <div id="r-result" class="result-area"></div>
+    </section>
+
+    <!-- ================================================================
+         TAB - SALUD DEL PACIENTE
+    ================================================================ -->
+    <section class="tab-panel" id="panel-salud">
+      <div class="panel-header">
+        <h2>Salud del Paciente</h2>
+        <p>Ultimas lecturas vitales con indicadores de riesgo.</p>
+      </div>
+      <div class="controls">
+        <div class="field">
+          <label for="s-paciente">Paciente</label>
+          <select id="s-paciente">
+            <option value="">— Seleccionar —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="s-cantidad">Lecturas</label>
+          <select id="s-cantidad">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="buscarSaludPaciente()">Buscar</button>
+      </div>
+      <div id="s-result" class="result-area"></div>
+    </section>
+
+    <!-- ================================================================
+         TAB — PACIENTES POR RIESGO
+    ================================================================ -->
+    <section class="tab-panel" id="panel-riesgo">
+      <div class="panel-header">
+        <h2>Pacientes por Nivel de Riesgo</h2>
+        <p>Lista de pacientes activos de un medico ordenados por cantidad de sensores criticos.</p>
+      </div>
+      <div class="controls">
+        <div class="field">
+          <label for="r-medico">Medico</label>
+          <select id="r-medico">
+            <option value="">— Seleccionar —</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="buscarPacientesPorRiesgo()">Cargar</button>
+      </div>
+      <div id="rr-result" class="result-area"></div>
+    </section>
+
+    <!-- ================================================================
+         TAB — RENDIMIENTO
+    ================================================================ -->
+    <section class="tab-panel" id="panel-rendimiento">
+      <div class="panel-header">
+        <h2>Rendimiento de Consultas</h2>
+        <p>Tiempo de respuesta promedio por endpoint para demostrar los beneficios de NoSQL.</p>
+      </div>
+      <div class="controls" style="justify-content:space-between">
+        <div id="rendimiento-stats" class="rendimiento-stats"></div>
+        <button class="btn-primary" onclick="cargarMetricas()">Actualizar</button>
+      </div>
+      <div id="rm-result" class="result-area"></div>
     </section>
 
   </main>
