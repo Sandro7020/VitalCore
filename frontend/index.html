@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VitalCore — Dashboard Médico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,8 +16,8 @@
     <div class="header-inner">
       <div class="logo">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="none" stroke="#4f9cf9" stroke-width="2"/>
-          <path d="M10 16h4l2-5 3 10 2-5h3" stroke="#4f9cf9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="none" stroke="var(--primary)" stroke-width="2"/>
+          <path d="M10 16h4l2-5 3 10 2-5h3" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </svg>
         <span class="logo-text">VitalCore</span>
       </div>
@@ -25,27 +28,15 @@
 
   <!-- NAVEGACION POR TABS -->
   <nav class="tab-nav">
-    <button class="tab-btn active" data-tab="historial">
-      <span class="tab-icon">📋</span>Historial Clínico
+    <button class="tab-btn active" data-tab="paciente">
+      <span class="tab-icon">👤</span>Paciente
     </button>
-    <button class="tab-btn" data-tab="telemetria">
-      <span class="tab-icon">📈</span>Telemetría
-    </button>
-    <button class="tab-btn" data-tab="pacientes">
-      <span class="tab-icon">👥</span>Pacientes Activos
-    </button>
-    <button class="tab-btn" data-tab="alertas">
-      <span class="tab-icon">🔔</span>Alertas
+    <button class="tab-btn" data-tab="monitoreo">
+      <span class="tab-icon">📡</span>Monitoreo
       <span class="badge" id="alertas-badge" hidden>0</span>
     </button>
-    <button class="tab-btn" data-tab="referidos">
-      <span class="tab-icon">🔗</span>Red de Referidos
-    </button>
-    <button class="tab-btn" data-tab="salud">
-      <span class="tab-icon">🩺</span>Salud del Paciente
-    </button>
-    <button class="tab-btn" data-tab="riesgo">
-      <span class="tab-icon">🎯</span>Pacientes por Riesgo
+    <button class="tab-btn" data-tab="medico">
+      <span class="tab-icon">🩺</span>Médico
     </button>
     <button class="tab-btn" data-tab="rendimiento">
       <span class="tab-icon">⚡</span>Rendimiento
@@ -55,209 +46,226 @@
   <main>
 
     <!-- ================================================================
-         TAB — HISTORIAL CLÍNICO
+         GRUPO — PACIENTE (Historial + Salud + Referidos)
     ================================================================ -->
-    <section class="tab-panel active" id="panel-historial">
-      <div class="panel-header">
-        <h2>Historial Clínico Completo</h2>
-        <p>Todas las consultas de un paciente ordenadas cronológicamente.</p>
-      </div>
-      <div class="controls">
-        <div class="field">
-          <label for="h-paciente">Paciente</label>
-          <select id="h-paciente">
-            <option value="">— Seleccionar —</option>
-          </select>
+    <section class="tab-panel active" id="panel-paciente">
+      <nav class="sub-tab-nav">
+        <button class="sub-tab-btn active" data-subtab="historial">Historial Clínico</button>
+        <button class="sub-tab-btn" data-subtab="salud">Salud del Paciente</button>
+        <button class="sub-tab-btn" data-subtab="referidos">Red de Referidos</button>
+      </nav>
+
+      <!-- Historial Clínico -->
+      <div class="sub-panel active" id="subpanel-historial">
+        <div class="panel-header">
+          <h2>Historial Clínico Completo</h2>
+          <p>Todas las consultas de un paciente ordenadas cronológicamente.</p>
         </div>
-        <button class="btn-primary" onclick="buscarHistorial()">Buscar</button>
+        <div class="controls">
+          <div class="field">
+            <label for="h-paciente">Paciente</label>
+            <select id="h-paciente">
+              <option value="">— Seleccionar —</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="buscarHistorial()">Buscar</button>
+        </div>
+        <div id="h-result" class="result-area"></div>
       </div>
-      <div id="h-result" class="result-area"></div>
+
+      <!-- Salud del Paciente -->
+      <div class="sub-panel" id="subpanel-salud">
+        <div class="panel-header">
+          <h2>Salud del Paciente</h2>
+          <p>Últimas lecturas vitales con indicadores de riesgo.</p>
+        </div>
+        <div class="controls">
+          <div class="field">
+            <label for="s-paciente">Paciente</label>
+            <select id="s-paciente">
+              <option value="">— Seleccionar —</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="s-cantidad">Lecturas</label>
+            <select id="s-cantidad">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="buscarSaludPaciente()">Buscar</button>
+        </div>
+        <div id="s-result" class="result-area"></div>
+      </div>
+
+      <!-- Red de Referidos -->
+      <div class="sub-panel" id="subpanel-referidos">
+        <div class="panel-header">
+          <h2>Red de Referidos</h2>
+          <p>Visualiza la cadena médica del paciente: médico principal y especialistas involucrados.</p>
+        </div>
+        <div class="controls">
+          <div class="field">
+            <label for="r-paciente">Paciente</label>
+            <select id="r-paciente">
+              <option value="">— Seleccionar —</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="buscarRedReferidos()">Visualizar Red</button>
+        </div>
+        <div id="r-result" class="result-area"></div>
+      </div>
     </section>
 
     <!-- ================================================================
-         TAB — TELEMETRÍA
+         GRUPO — MONITOREO (Telemetría + Alertas)
     ================================================================ -->
-    <section class="tab-panel" id="panel-telemetria">
-      <div class="panel-header">
-        <h2>Lecturas de Sensor</h2>
-        <p>Busca los registros de un sensor específico en un rango de fechas.</p>
-      </div>
-      <div class="controls">
-        <div class="field">
-          <label for="t-paciente">Paciente</label>
-          <select id="t-paciente">
-            <option value="">— Seleccionar —</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="t-sensor">Sensor</label>
-          <select id="t-sensor">
-            <option value="glucosa">Glucosa</option>
-            <option value="frecuencia_cardiaca">Frec. Cardíaca</option>
-            <option value="saturacion_oxigeno">Saturación O₂</option>
-            <option value="presion_sistolica">Presión Sistólica</option>
-            <option value="horas_sueno">Horas de Sueño</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="t-desde">Desde</label>
-          <input type="date" id="t-desde">
-        </div>
-        <div class="field">
-          <label for="t-hasta">Hasta</label>
-          <input type="date" id="t-hasta">
-        </div>
-        <button class="btn-primary" onclick="buscarTelemetria()">Buscar</button>
-      </div>
-      <div id="t-result" class="result-area"></div>
-    </section>
+    <section class="tab-panel" id="panel-monitoreo">
+      <nav class="sub-tab-nav">
+        <button class="sub-tab-btn active" data-subtab="telemetria">Telemetría</button>
+        <button class="sub-tab-btn" data-subtab="alertas">Alertas</button>
+      </nav>
 
-    <!-- ================================================================
-         TAB — PACIENTES ACTIVOS
-    ================================================================ -->
-    <section class="tab-panel" id="panel-pacientes">
-      <div class="panel-header">
-        <h2>Pacientes Activos por Médico</h2>
-        <p>Lista de pacientes activos asignados a un médico con su última lectura vital.</p>
-      </div>
-      <div class="controls">
-        <div class="field">
-          <label for="p-medico">Médico</label>
-          <select id="p-medico">
-            <option value="">— Seleccionar —</option>
-          </select>
+      <!-- Telemetría -->
+      <div class="sub-panel active" id="subpanel-telemetria">
+        <div class="panel-header">
+          <h2>Lecturas de Sensor</h2>
+          <p>Busca los registros de un sensor específico en un rango de fechas.</p>
         </div>
-        <button class="btn-primary" onclick="buscarPacientesActivos()">Cargar</button>
-      </div>
-      <div id="p-result" class="result-area"></div>
-    </section>
-
-    <!-- ================================================================
-         TAB — ALERTAS
-    ================================================================ -->
-    <section class="tab-panel" id="panel-alertas">
-      <div class="panel-header">
-        <h2>Alertas de Valores Críticos</h2>
-        <p>Pacientes cuya última lectura vital supera el umbral definido.</p>
+        <div class="controls">
+          <div class="field">
+            <label for="t-paciente">Paciente</label>
+            <select id="t-paciente">
+              <option value="">— Seleccionar —</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="t-sensor">Sensor</label>
+            <select id="t-sensor">
+              <option value="glucosa">Glucosa</option>
+              <option value="frecuencia_cardiaca">Frec. Cardíaca</option>
+              <option value="saturacion_oxigeno">Saturación O₂</option>
+              <option value="presion_sistolica">Presión Sistólica</option>
+              <option value="horas_sueno">Horas de Sueño</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="t-desde">Desde</label>
+            <input type="date" id="t-desde">
+          </div>
+          <div class="field">
+            <label for="t-hasta">Hasta</label>
+            <input type="date" id="t-hasta">
+          </div>
+          <button class="btn-primary" onclick="buscarTelemetria()">Buscar</button>
+        </div>
+        <div id="t-result" class="result-area"></div>
       </div>
 
-      <div class="umbrales-box">
-        <span class="umbrales-title">Umbrales configurables</span>
-        <div class="umbrales-grid">
-          <div class="umbral-item">
-            <label>Frec. Cardíaca <span class="unit">(bpm)</span></label>
-            <div class="umbral-input-row">
-              <span class="dir-label">&gt;</span>
-              <input type="number" id="u-fc" value="120" min="0">
+      <!-- Alertas -->
+      <div class="sub-panel" id="subpanel-alertas">
+        <div class="panel-header">
+          <h2>Alertas de Valores Críticos</h2>
+          <p>Pacientes cuya última lectura vital supera el umbral definido.</p>
+        </div>
+
+        <div class="umbrales-box">
+          <span class="umbrales-title">Umbrales configurables</span>
+          <div class="umbrales-grid">
+            <div class="umbral-item">
+              <label>Frec. Cardíaca <span class="unit">(bpm)</span></label>
+              <div class="umbral-input-row">
+                <span class="dir-label">&gt;</span>
+                <input type="number" id="u-fc" value="120" min="0">
+              </div>
+            </div>
+            <div class="umbral-item">
+              <label>Glucosa <span class="unit">(mg/dL)</span></label>
+              <div class="umbral-input-row">
+                <span class="dir-label">&gt;</span>
+                <input type="number" id="u-glucosa" value="180" min="0">
+              </div>
+            </div>
+            <div class="umbral-item">
+              <label>Saturación O₂ <span class="unit">(%)</span></label>
+              <div class="umbral-input-row">
+                <span class="dir-label">&lt;</span>
+                <input type="number" id="u-spo2" value="92" min="0">
+              </div>
+            </div>
+            <div class="umbral-item">
+              <label>Presión Sistólica <span class="unit">(mmHg)</span></label>
+              <div class="umbral-input-row">
+                <span class="dir-label">&gt;</span>
+                <input type="number" id="u-pa" value="140" min="0">
+              </div>
             </div>
           </div>
-          <div class="umbral-item">
-            <label>Glucosa <span class="unit">(mg/dL)</span></label>
-            <div class="umbral-input-row">
-              <span class="dir-label">&gt;</span>
-              <input type="number" id="u-glucosa" value="180" min="0">
-            </div>
-          </div>
-          <div class="umbral-item">
-            <label>Saturación O₂ <span class="unit">(%)</span></label>
-            <div class="umbral-input-row">
-              <span class="dir-label">&lt;</span>
-              <input type="number" id="u-spo2" value="92" min="0">
-            </div>
-          </div>
-          <div class="umbral-item">
-            <label>Presión Sistólica <span class="unit">(mmHg)</span></label>
-            <div class="umbral-input-row">
-              <span class="dir-label">&gt;</span>
-              <input type="number" id="u-pa" value="140" min="0">
-            </div>
-          </div>
+          <button class="btn-danger" onclick="buscarAlertas()">Verificar Alertas</button>
         </div>
-        <button class="btn-danger" onclick="buscarAlertas()">Verificar Alertas</button>
-      </div>
 
-      <div class="auto-refresh-box">
-        <label class="auto-refresh-toggle">
-          <input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefreshAlertas()">
-          <span class="auto-refresh-slider"></span>
-        </label>
-        <span class="auto-refresh-label">Auto-refresh cada 30s</span>
-        <span id="alertas-countdown" class="text-muted" style="font-size:.8rem"></span>
-      </div>
+        <div class="auto-refresh-box">
+          <label class="auto-refresh-toggle">
+            <input type="checkbox" id="auto-refresh-toggle" onchange="toggleAutoRefreshAlertas()">
+            <span class="auto-refresh-slider"></span>
+          </label>
+          <span class="auto-refresh-label">Auto-refresh cada 30s</span>
+          <span id="alertas-countdown" class="text-muted" style="font-size:.8rem"></span>
+        </div>
 
-      <div id="a-result" class="result-area"></div>
+        <div id="a-result" class="result-area"></div>
+      </div>
     </section>
 
     <!-- ================================================================
-         TAB — RED DE REFERIDOS
+         GRUPO — MÉDICO (Activos + Riesgo)
     ================================================================ -->
-    <section class="tab-panel" id="panel-referidos">
-      <div class="panel-header">
-        <h2>Red de Referidos</h2>
-        <p>Visualiza la cadena médica del paciente: médico principal y especialistas involucrados.</p>
-      </div>
-      <div class="controls">
-        <div class="field">
-          <label for="r-paciente">Paciente</label>
-          <select id="r-paciente">
-            <option value="">— Seleccionar —</option>
-          </select>
+    <section class="tab-panel" id="panel-medico">
+      <nav class="sub-tab-nav">
+        <button class="sub-tab-btn active" data-subtab="pacientes">Pacientes Activos</button>
+        <button class="sub-tab-btn" data-subtab="riesgo">Pacientes por Riesgo</button>
+      </nav>
+
+      <!-- Pacientes Activos -->
+      <div class="sub-panel active" id="subpanel-pacientes">
+        <div class="panel-header">
+          <h2>Pacientes Activos por Médico</h2>
+          <p>Lista de pacientes activos asignados a un médico con su última lectura vital.</p>
         </div>
-        <button class="btn-primary" onclick="buscarRedReferidos()">Visualizar Red</button>
+        <div class="controls">
+          <div class="field">
+            <label for="p-medico">Médico</label>
+            <select id="p-medico">
+              <option value="">— Seleccionar —</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="buscarPacientesActivos()">Cargar</button>
+        </div>
+        <div id="p-result" class="result-area"></div>
       </div>
-      <div id="r-result" class="result-area"></div>
+
+      <!-- Pacientes por Riesgo -->
+      <div class="sub-panel" id="subpanel-riesgo">
+        <div class="panel-header">
+          <h2>Pacientes por Nivel de Riesgo</h2>
+          <p>Lista de pacientes activos de un médico ordenados por cantidad de sensores críticos.</p>
+        </div>
+        <div class="controls">
+          <div class="field">
+            <label for="r-medico">Médico</label>
+            <select id="r-medico">
+              <option value="">— Seleccionar —</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="buscarPacientesPorRiesgo()">Cargar</button>
+        </div>
+        <div id="rr-result" class="result-area"></div>
+      </div>
     </section>
 
     <!-- ================================================================
-         TAB - SALUD DEL PACIENTE
-    ================================================================ -->
-    <section class="tab-panel" id="panel-salud">
-      <div class="panel-header">
-        <h2>Salud del Paciente</h2>
-        <p>Ultimas lecturas vitales con indicadores de riesgo.</p>
-      </div>
-      <div class="controls">
-        <div class="field">
-          <label for="s-paciente">Paciente</label>
-          <select id="s-paciente">
-            <option value="">— Seleccionar —</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="s-cantidad">Lecturas</label>
-          <select id="s-cantidad">
-            <option value="10">10</option>
-            <option value="20" selected>20</option>
-            <option value="50">50</option>
-          </select>
-        </div>
-        <button class="btn-primary" onclick="buscarSaludPaciente()">Buscar</button>
-      </div>
-      <div id="s-result" class="result-area"></div>
-    </section>
-
-    <!-- ================================================================
-         TAB — PACIENTES POR RIESGO
-    ================================================================ -->
-    <section class="tab-panel" id="panel-riesgo">
-      <div class="panel-header">
-        <h2>Pacientes por Nivel de Riesgo</h2>
-        <p>Lista de pacientes activos de un medico ordenados por cantidad de sensores criticos.</p>
-      </div>
-      <div class="controls">
-        <div class="field">
-          <label for="r-medico">Medico</label>
-          <select id="r-medico">
-            <option value="">— Seleccionar —</option>
-          </select>
-        </div>
-        <button class="btn-primary" onclick="buscarPacientesPorRiesgo()">Cargar</button>
-      </div>
-      <div id="rr-result" class="result-area"></div>
-    </section>
-
-    <!-- ================================================================
-         TAB — RENDIMIENTO
+         RENDIMIENTO (standalone)
     ================================================================ -->
     <section class="tab-panel" id="panel-rendimiento">
       <div class="panel-header">

@@ -16,10 +16,10 @@ SKIP_PING = os.getenv("SKIP_PING", "false").lower() == "true"
 
 
 def get_client() -> MongoClient:
-    """Create a MongoClient with Atlas Stable API when applicable.
+    """Crea un MongoClient con Atlas Stable API cuando aplica.
 
-    For Atlas URIs (mongodb+srv://) the Stable API v1 is enabled with strict
-    mode.  A ``ping`` command verifies the connection unless SKIP_PING is set.
+    Para URIs de Atlas (mongodb+srv://) el Stable API v1 se activa en el modo restrictivo.
+    Un ``ping`` verifica la conexión a menos que SKIP_PING sea verdadero.
     """
     is_atlas = MONGO_URI.startswith("mongodb+srv://")
 

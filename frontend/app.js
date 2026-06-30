@@ -16,6 +16,7 @@ let umbralesSensores  = {};
 // =========================================================
 document.addEventListener('DOMContentLoaded', () => {
   inicializarTabs();
+  inicializarSubTabs();
   setFechasDefecto();
   verificarConexion();
   cargarUmbrales();
@@ -81,7 +82,7 @@ async function cargarDropdowns() {
 }
 
 // =========================================================
-// TABS
+// TABS — Navegación general
 // =========================================================
 function inicializarTabs() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -90,6 +91,23 @@ function inicializarTabs() {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById(`panel-${btn.dataset.tab}`).classList.add('active');
+    });
+  });
+}
+
+// =========================================================
+// SUB-TABS — Navegación interna del TAB
+// =========================================================
+function inicializarSubTabs() {
+  document.querySelectorAll('.sub-tab-nav').forEach(nav => {
+    nav.querySelectorAll('.sub-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const panel = btn.closest('.tab-panel');
+        panel.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+        panel.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        panel.querySelector(`#subpanel-${btn.dataset.subtab}`).classList.add('active');
+      });
     });
   });
 }
@@ -187,7 +205,7 @@ async function buscarTelemetria() {
         </div>
         <div class="stat-card">
           <div class="stat-label">Máximo</div>
-          <div class="stat-value" style="color:${s.maximo > (umbral?.umbral_critico ?? Infinity) ? 'var(--red)' : 'var(--blue)'}">${s.maximo}</div>
+          <div class="stat-value" style="color:${s.maximo > (umbral?.umbral_critico ?? Infinity) ? 'var(--red)' : 'var(--primary)'}">${s.maximo}</div>
           <div class="stat-unit">${lecturas[0]?.unidad ?? ''}</div>
         </div>
         <div class="stat-card">
@@ -300,7 +318,7 @@ async function buscarAlertas() {
       `/alertas?fc=${fc}&glucosa=${glucosa}&spo2=${spo2}&pa=${pa}`
     );
 
-    // Actualizar badge en el tab
+    // Actualizar badge en el tab de Monitoreo
     const badge = document.getElementById('alertas-badge');
     if (alertas.length > 0) {
       badge.textContent = alertas.length;
@@ -362,14 +380,12 @@ async function buscarRedReferidos() {
     const red = await apiFetch(`/red-referidos/${pacienteId}`);
     const { paciente, medico_principal, nodos } = red;
 
-    // Separar médico principal del resto (especialistas)
     const especialistas = nodos.filter(n => n._id !== paciente_principal_id(medico_principal));
     const nodoPrincipal = nodos.find(n => n._id === paciente_principal_id(medico_principal));
 
     resultado.innerHTML = `
       <div class="referral-network">
 
-        <!-- PACIENTE -->
         <div class="rn-node paciente">
           <div class="rn-avatar">👤</div>
           <div class="rn-info">
@@ -381,7 +397,6 @@ async function buscarRedReferidos() {
 
         <div class="rn-connector"></div>
 
-        <!-- MÉDICO PRINCIPAL -->
         ${medico_principal ? `
           <div class="rn-node principal">
             <div class="rn-avatar">🩺</div>
@@ -642,7 +657,7 @@ async function cargarMetricas() {
                         : 'text-red';
               return `
                 <tr>
-                  <td class="fw-bold" style="font-family:monospace;font-size:.82rem">${m.endpoint}</td>
+                  <td class="fw-bold" style="font-family:'JetBrains Mono',monospace;font-size:.82rem">${m.endpoint}</td>
                   <td>${m.total_llamadas}</td>
                   <td class="fw-bold ${cls}">${m.promedio_ms}ms</td>
                   <td>${m.minimo_ms}ms</td>
@@ -720,17 +735,13 @@ function formatFechaHora(iso) {
   return new Date(iso).toLocaleString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-// Umbrales cargados desde /api/thresholds (fuente de verdad: config/thresholds.py)
-// umbralesSensores es un objeto global llenado por cargarUmbrales()
-
 function esCritico(sensor, valor) {
   const u = umbralesSensores[sensor];
   if (!u || !u.umbral_critico) return false;
-  // Use explicit direction from threshold config
   const direction = u.direccion || 'mayor';
   if (direction === 'mayor') {
     return valor > u.umbral_critico;
-  } else { // direction === 'menor'
+  } else {
     return valor < u.umbral_critico;
   }
 }
@@ -761,7 +772,7 @@ function chipEsp(especialidad) {
   const map = {
     'Cardiologia':      'chip-red',
     'Endocrinologia':   'chip-amber',
-    'Medicina General': 'chip-blue',
+    'Medicina General': 'chip-green',
     'Neumologia':       'chip-green',
     'Geriatria':        'chip-purple',
   };

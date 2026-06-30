@@ -1,51 +1,58 @@
 /* =========================================================
    VitalCore — Estilos principales
-   Tema oscuro médico
+   Tema claro · Paleta limón-verde
    ========================================================= */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:          #0d0e1a;
-  --bg-card:     #13152b;
-  --bg-elevated: #1a1d38;
-  --border:      #252847;
-  --border-soft: #1e2140;
+  --bg:           #F7FAF0;
+  --bg-card:      #FFFFFF;
+  --bg-elevated:  #F0F5E4;
+  --border:       #D6E4B8;
+  --border-soft:  #E4EDD4;
 
-  --blue:        #4f9cf9;
-  --blue-dim:    #1e3a6e;
-  --green:       #34d399;
-  --green-dim:   #0d3b25;
-  --red:         #f87171;
-  --red-dim:     #4b1616;
-  --amber:       #fbbf24;
-  --amber-dim:   #422c04;
-  --purple:      #a78bfa;
-  --purple-dim:  #2d1f5e;
+  --primary:      #7AB648;
+  --primary-light:#B7ED85;
+  --secondary:    #E2ED84;
+  --accent:       #EDE485;
 
-  --text:        #e2e4f0;
-  --text-muted:  #6b7199;
-  --text-soft:   #9fa3c8;
+  --red:          #E53935;
+  --red-dim:      #FDEAEA;
+  --green:        #43A047;
+  --green-dim:    #E8F5E9;
+  --amber:        #F9A825;
+  --amber-dim:    #FFF8E1;
+  --purple:       #7E57C2;
+  --purple-dim:   #F3E5F5;
 
-  --radius:      10px;
-  --radius-lg:   16px;
-  --shadow:      0 4px 24px rgba(0,0,0,.45);
+  --blue:         #1E88E5;
+  --blue-dim:     #E3F2FD;
 
-  /* colores por especialidad */
-  --esp-cardiologia:    #f87171;
-  --esp-endocrinologia: #fbbf24;
-  --esp-general:        #4f9cf9;
-  --esp-neumologia:     #34d399;
-  --esp-geriatria:      #a78bfa;
+  --text:         #1A2E0A;
+  --text-muted:   #5A6B4A;
+  --text-soft:    #7A8B6A;
+
+  --radius:       8px;
+  --radius-lg:    12px;
+  --shadow:       0 1px 3px rgba(26,46,10,.06), 0 4px 16px rgba(26,46,10,.04);
+  --shadow-hover: 0 2px 8px rgba(122,182,72,.12), 0 4px 20px rgba(26,46,10,.06);
+
+  --esp-cardiologia:    #E53935;
+  --esp-endocrinologia: #F9A825;
+  --esp-general:        #7AB648;
+  --esp-neumologia:     #43A047;
+  --esp-geriatria:      #7E57C2;
 }
 
 html { font-size: 15px; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* =========================================================
@@ -75,8 +82,8 @@ header {
   align-items: center;
   gap: .6rem;
   font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--blue);
+  font-weight: 800;
+  color: var(--primary);
   flex-shrink: 0;
 }
 
@@ -86,7 +93,6 @@ header {
   flex: 1;
 }
 
-/* indicador de estado de conexión */
 .status-dot {
   width: 10px;
   height: 10px;
@@ -123,16 +129,17 @@ header {
   border: none;
   border-bottom: 3px solid transparent;
   color: var(--text-muted);
+  font-family: inherit;
   font-size: .875rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   transition: color .15s, border-color .15s;
   position: relative;
 }
 
-.tab-btn:hover      { color: var(--text-soft); }
-.tab-btn.active     { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-btn:hover      { color: var(--text); }
+.tab-btn.active     { color: var(--primary); border-bottom-color: var(--primary); }
 .tab-icon           { font-size: 1rem; }
 
 .badge {
@@ -146,6 +153,36 @@ header {
 }
 
 /* =========================================================
+   SUB-TABS (within grouped panels)
+   ========================================================= */
+.sub-tab-nav {
+  display: flex;
+  gap: 6px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.sub-tab-btn {
+  padding: .5rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+
+.sub-tab-btn:hover  { color: var(--text); background: rgba(122,182,72,.08); }
+.sub-tab-btn.active { color: #fff; background: var(--primary); }
+
+/* =========================================================
    MAIN / PANELS
    ========================================================= */
 main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
@@ -153,8 +190,11 @@ main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
+.sub-panel { display: none; }
+.sub-panel.active { display: block; }
+
 .panel-header { margin-bottom: 1.5rem; }
-.panel-header h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: .3rem; }
+.panel-header h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: .3rem; color: var(--text); }
 .panel-header p  { color: var(--text-muted); font-size: .9rem; }
 
 /* =========================================================
@@ -170,23 +210,28 @@ main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
   border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
 .field { display: flex; flex-direction: column; gap: .4rem; min-width: 180px; }
-.field label { font-size: .8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.field label { font-size: .75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
 
 select, input[type="date"], input[type="number"] {
-  background: var(--bg-elevated);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
+  font-family: inherit;
   padding: .55rem .85rem;
   font-size: .9rem;
   outline: none;
-  transition: border-color .15s;
+  transition: border-color .15s, box-shadow .15s;
   width: 100%;
 }
-select:focus, input:focus { border-color: var(--blue); }
+select:focus, input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(122,182,72,.12);
+}
 
 /* =========================================================
    BOTONES
@@ -195,26 +240,41 @@ select:focus, input:focus { border-color: var(--blue); }
   padding: .6rem 1.4rem;
   border: none;
   border-radius: var(--radius);
+  font-family: inherit;
   font-size: .9rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: opacity .15s, transform .1s;
+  transition: opacity .15s, transform .1s, box-shadow .15s;
   white-space: nowrap;
   align-self: flex-end;
 }
-.btn-primary         { background: var(--blue);     color: #fff; }
-.btn-danger          { background: var(--red);      color: #fff; }
-.btn-primary:hover,
-.btn-danger:hover    { opacity: .85; }
-.btn-primary:active,
-.btn-danger:active   { transform: scale(.97); }
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(122,182,72,.25);
+}
+.btn-primary:hover {
+  opacity: .9;
+  box-shadow: 0 2px 12px rgba(122,182,72,.35);
+}
+.btn-primary:active { transform: scale(.97); }
+
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(229,57,53,.25);
+}
+.btn-danger:hover {
+  opacity: .9;
+  box-shadow: 0 2px 12px rgba(229,57,53,.35);
+}
+.btn-danger:active { transform: scale(.97); }
 
 /* =========================================================
    AREA DE RESULTADOS
    ========================================================= */
 .result-area { margin-top: .5rem; }
 
-/* placeholder de carga */
 .loading {
   display: flex;
   align-items: center;
@@ -225,13 +285,12 @@ select:focus, input:focus { border-color: var(--blue); }
 .spinner {
   width: 20px; height: 20px;
   border: 3px solid var(--border);
-  border-top-color: var(--blue);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* mensaje vacío */
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
@@ -242,7 +301,13 @@ select:focus, input:focus { border-color: var(--blue); }
 /* =========================================================
    TABLAS
    ========================================================= */
-.table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow);
+}
 
 table {
   width: 100%;
@@ -252,7 +317,7 @@ table {
 thead th {
   background: var(--bg-elevated);
   color: var(--text-muted);
-  font-size: .75rem;
+  font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .07em;
@@ -260,13 +325,16 @@ thead th {
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
-tbody tr { border-bottom: 1px solid var(--border-soft); transition: background .1s; }
+tbody tr {
+  border-bottom: 1px solid var(--border-soft);
+  transition: background .1s;
+}
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: var(--bg-elevated); }
+tbody tr:hover { background: rgba(183,237,133,.1); }
 tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
 
 /* =========================================================
-   CARDS DE PACIENTE (tab 3)
+   CARDS DE PACIENTE
    ========================================================= */
 .patient-grid {
   display: grid;
@@ -279,9 +347,13 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
-  transition: border-color .15s;
+  transition: border-color .15s, box-shadow .15s;
+  box-shadow: var(--shadow);
 }
-.patient-card:hover { border-color: var(--blue-dim); }
+.patient-card:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-hover);
+}
 
 .patient-name { font-weight: 700; font-size: 1rem; margin-bottom: .25rem; }
 .patient-meta { font-size: .8rem; color: var(--text-muted); margin-bottom: .9rem; }
@@ -305,7 +377,7 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
 .vital-badge.normal    { border-color: var(--green-dim); }
 
 /* =========================================================
-   ALERTAS (tab 4)
+   ALERTAS
    ========================================================= */
 .umbrales-box {
   background: var(--bg-card);
@@ -313,10 +385,11 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
 }
 .umbrales-title {
   display: block;
-  font-size: .75rem;
+  font-size: .72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .07em;
@@ -332,7 +405,7 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
 .umbral-item label { font-size: .8rem; color: var(--text-soft); display: block; margin-bottom: .35rem; }
 .unit { color: var(--text-muted); }
 .umbral-input-row { display: flex; align-items: center; gap: .4rem; }
-.dir-label { color: var(--amber); font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+.dir-label { color: var(--red); font-weight: 700; font-size: 1rem; flex-shrink: 0; }
 .umbral-input-row input { max-width: 100px; }
 
 .alerts-list { display: flex; flex-direction: column; gap: .75rem; }
@@ -346,6 +419,7 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   border-left: 4px solid var(--red);
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
 }
 .alert-icon { font-size: 1.5rem; flex-shrink: 0; }
 .alert-body { flex: 1; }
@@ -376,13 +450,14 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   min-width: 120px;
   text-align: center;
   flex: 1;
+  box-shadow: var(--shadow);
 }
 .stat-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: .25rem; }
-.stat-value { font-size: 1.6rem; font-weight: 800; color: var(--blue); }
+.stat-value { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
 .stat-unit  { font-size: .75rem; color: var(--text-muted); }
 
 /* =========================================================
-   RED DE REFERIDOS (tab 5)
+   RED DE REFERIDOS
    ========================================================= */
 .referral-network {
   display: flex;
@@ -403,10 +478,11 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   min-width: 260px;
   max-width: 400px;
   width: 100%;
+  box-shadow: var(--shadow);
 }
-.rn-node.paciente   { border-color: var(--blue);    background: var(--blue-dim); }
-.rn-node.principal  { border-color: var(--green);   background: var(--green-dim); }
-.rn-node.especialista { border-color: var(--purple); background: var(--purple-dim); }
+.rn-node.paciente     { border-color: var(--primary); background: rgba(183,237,133,.12); }
+.rn-node.principal    { border-color: var(--green);   background: var(--green-dim); }
+.rn-node.especialista { border-color: var(--purple);  background: var(--purple-dim); }
 
 .rn-avatar {
   width: 40px; height: 40px;
@@ -414,7 +490,7 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   display: flex; align-items: center; justify-content: center;
   font-size: 1.2rem;
   flex-shrink: 0;
-  background: rgba(255,255,255,.07);
+  background: var(--bg-elevated);
 }
 .rn-info { flex: 1; }
 .rn-name { font-weight: 700; font-size: .95rem; }
@@ -424,11 +500,11 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   padding: 2px 8px;
   border-radius: 999px;
   font-weight: 700;
-  background: rgba(255,255,255,.1);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
-/* conectores verticales */
 .rn-connector {
   width: 2px;
   height: 32px;
@@ -447,7 +523,6 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   border-top: 6px solid var(--border);
 }
 
-/* fila horizontal de especialistas */
 .rn-specialists-row {
   display: flex;
   flex-wrap: wrap;
@@ -471,12 +546,11 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   margin: .5rem 0 .75rem;
 }
 
-/* especialidad colores */
-.esp-Cardiologia    { color: var(--esp-cardiologia); }
-.esp-Endocrinologia { color: var(--esp-endocrinologia); }
-.esp-MedicinaGeneral{ color: var(--esp-general); }
-.esp-Neumologia     { color: var(--esp-neumologia); }
-.esp-Geriatria      { color: var(--esp-geriatria); }
+.esp-Cardiologia     { color: var(--esp-cardiologia); }
+.esp-Endocrinologia  { color: var(--esp-endocrinologia); }
+.esp-MedicinaGeneral { color: var(--esp-general); }
+.esp-Neumologia      { color: var(--esp-neumologia); }
+.esp-Geriatria       { color: var(--esp-geriatria); }
 
 /* =========================================================
    CHIPS / TAGS
@@ -506,7 +580,7 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
 .count-label { font-size: .8rem; color: var(--text-muted); margin-bottom: 1rem; }
 
 /* =========================================================
-   KPI 2 — SALUD DEL PACIENTE
+   SALUD DEL PACIENTE
    ========================================================= */
 .salud-header { margin-bottom: 1.25rem; }
 .salud-patient-name { font-weight: 700; font-size: 1.15rem; margin-bottom: .2rem; }
@@ -515,7 +589,7 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
 .row-critical { background: var(--red-dim); }
 
 /* =========================================================
-   KPI 3 — PACIENTES POR RIESGO
+   PACIENTES POR RIESGO
    ========================================================= */
 .riesgo-summary { display: flex; gap: .5rem; margin-bottom: 1rem; }
 .riesgo-badge {
@@ -526,8 +600,8 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   margin-top: .5rem;
   display: inline-block;
 }
-.riesgo-alto { border-color: var(--red); }
-.riesgo-bajo { border-color: var(--green-dim); }
+.riesgo-alto { border: 1px solid var(--red); background: var(--red-dim); color: var(--red); }
+.riesgo-bajo { border: 1px solid var(--green-dim); background: var(--green-dim); color: var(--green); }
 
 /* =========================================================
    AUTO-REFRESH TOGGLE
@@ -567,9 +641,10 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   left: 3px;
   width: 18px;
   height: 18px;
-  background: var(--text);
+  background: #fff;
   border-radius: 50%;
   transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
 }
 .auto-refresh-toggle input:checked + .auto-refresh-slider {
   background: var(--green);
@@ -583,6 +658,6 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
 }
 
 /* =========================================================
-   KPI 1 — RENDIMIENTO
+   RENDIMIENTO
    ========================================================= */
 .rendimiento-stats { display: flex; gap: .5rem; align-items: center; }
