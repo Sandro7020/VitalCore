@@ -68,6 +68,17 @@
               <option value="">— Seleccionar —</option>
             </select>
           </div>
+          <div class="field">
+            <label for="h-especialidad">Especialidad</label>
+            <select id="h-especialidad">
+              <option value="">Todas</option>
+              <option value="Cardiologia">Cardiologia</option>
+              <option value="Endocrinologia">Endocrinologia</option>
+              <option value="Medicina General">Medicina General</option>
+              <option value="Neumologia">Neumologia</option>
+              <option value="Geriatria">Geriatria</option>
+            </select>
+          </div>
           <button class="btn-primary" onclick="buscarHistorial()">Buscar</button>
         </div>
         <div id="h-result" class="result-area"></div>
@@ -92,6 +103,17 @@
               <option value="10">10</option>
               <option value="20" selected>20</option>
               <option value="50">50</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="s-sensor">Sensor</label>
+            <select id="s-sensor">
+              <option value="">Todos</option>
+              <option value="glucosa">Glucosa</option>
+              <option value="frecuencia_cardiaca">Frec. Cardiaca</option>
+              <option value="saturacion_oxigeno">Saturacion O2</option>
+              <option value="presion_sistolica">Presion Sistolica</option>
+              <option value="horas_sueno">Horas de Sueno</option>
             </select>
           </div>
           <button class="btn-primary" onclick="buscarSaludPaciente()">Buscar</button>
@@ -200,6 +222,18 @@
                 <span class="dir-label">&gt;</span>
                 <input type="number" id="u-pa" value="140" min="0">
               </div>
+            </div>
+          </div>
+          <div class="sensor-filter-group">
+            <div class="sensor-title-row">
+              <span class="umbrales-title">Mostrar sensores</span>
+              <button type="button" class="toggle-sensors-btn" id="toggle-all-sensors">Marcar / Desmarcar todos</button>
+            </div>
+            <div class="sensor-checkboxes">
+              <label class="sensor-check"><input type="checkbox" class="a-sensor-check" checked value="frecuencia_cardiaca"> Frec. Cardiaca</label>
+              <label class="sensor-check"><input type="checkbox" class="a-sensor-check" checked value="glucosa"> Glucosa</label>
+              <label class="sensor-check"><input type="checkbox" class="a-sensor-check" checked value="saturacion_oxigeno"> Saturacion O2</label>
+              <label class="sensor-check"><input type="checkbox" class="a-sensor-check" checked value="presion_sistolica"> Presion Sistolica</label>
             </div>
           </div>
           <button class="btn-danger" onclick="buscarAlertas()">Verificar Alertas</button>

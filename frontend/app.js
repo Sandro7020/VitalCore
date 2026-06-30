@@ -16,11 +16,11 @@ let umbralesSensores  = {};
 // =========================================================
 const pag = {
   telemetria:  { page: 1, perPage: 20 },
-  alertas:     { page: 1, perPage: 15 },
-  historial:   { data: [], fullData: [], page: 1, perPage: 15 },
+  alertas:     { data: [], fullData: [], page: 1, perPage: 15 },
+  historial:   { data: [], fullData: [], page: 1, perPage: 15, _filter: '' },
   activos:     { data: [], fullData: [], page: 1, perPage: 12 },
   riesgo:      { data: [], fullData: [], page: 1, perPage: 12 },
-  salud:       { data: [], fullData: [], paciente: null, page: 1, perPage: 15 },
+  salud:       { data: [], fullData: [], paciente: null, page: 1, perPage: 15, _filter: '' },
 };
 
 // =========================================================
@@ -83,6 +83,7 @@ function pagSlice(array, page, perPage) {
 document.addEventListener('DOMContentLoaded', () => {
   inicializarTabs();
   inicializarSubTabs();
+  inicializarFiltros();
   setFechasDefecto();
   verificarConexion();
   cargarUmbrales();
@@ -163,16 +164,57 @@ function inicializarSubTabs() {
 }
 
 // =========================================================
+// FILTER EVENT LISTENERS
+// =========================================================
+function inicializarFiltros() {
+  document.getElementById('h-especialidad').addEventListener('change', () => {
+    if (pag.historial.fullData.length) {
+      pag.historial._filter = document.getElementById('h-especialidad').value;
+      pag.historial.page = 1;
+      renderHistorialPage();
+    }
+  });
+
+  document.getElementById('s-sensor').addEventListener('change', () => {
+    if (pag.salud.fullData.length) {
+      pag.salud._filter = document.getElementById('s-sensor').value;
+      pag.salud.page = 1;
+      renderSaludPage();
+    }
+  });
+
+  document.querySelectorAll('.a-sensor-check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (pag.alertas.fullData.length) {
+        pag.alertas.page = 1;
+        renderAlertasPage();
+      }
+    });
+  });
+
+  document.getElementById('toggle-all-sensors').addEventListener('click', () => {
+    const checks = document.querySelectorAll('.a-sensor-check');
+    const allChecked = [...checks].every(cb => cb.checked);
+    checks.forEach(cb => { cb.checked = !allChecked; });
+    if (pag.alertas.fullData.length) {
+      pag.alertas.page = 1;
+      renderAlertasPage();
+    }
+  });
+}
+
+// =========================================================
 // CONSULTA 1 — Historial clinico (client-side pagination)
 // =========================================================
 async function buscarHistorial(page = 1) {
   const pacienteId = document.getElementById('h-paciente').value;
+  const filtro = document.getElementById('h-especialidad').value;
   if (!pacienteId) return alertar('Selecciona un paciente.');
 
   const resultado = document.getElementById('h-result');
 
-  // If same patient and we already have data, just re-render page
-  if (pag.historial.data.length && pag.historial._patient === pacienteId && page !== 1) {
+  // If same patient and filter, just re-render with new page
+  if (pag.historial.fullData.length && pag.historial._patient === pacienteId && pag.historial._filter === filtro && page !== 1) {
     pag.historial.page = page;
     renderHistorialPage();
     return;
@@ -183,6 +225,7 @@ async function buscarHistorial(page = 1) {
     const consultas = await apiFetch(`/historial/${pacienteId}`);
     pag.historial.fullData = consultas;
     pag.historial._patient = pacienteId;
+    pag.historial._filter = filtro;
     pag.historial.page = 1;
 
     if (!consultas.length) {
@@ -197,7 +240,16 @@ function renderHistorialPage() {
   const resultado = document.getElementById('h-result');
   const d = pag.historial;
   const page = d.page;
-  const consultas = d.fullData;
+  const filtro = d._filter || document.getElementById('h-especialidad').value;
+  const consultas = filtro
+    ? d.fullData.filter(c => c.medico && c.medico.especialidad === filtro)
+    : d.fullData;
+
+  if (!consultas.length) {
+    resultado.innerHTML = sinResultados('Sin consultas para esta especialidad.');
+    return;
+  }
+
   const meta = pagMeta(consultas.length, page, d.perPage);
   const pageData = pagSlice(consultas, page, d.perPage);
   const globalOffset = (page - 1) * d.perPage;
@@ -380,7 +432,7 @@ function renderActivosPage() {
 }
 
 // =========================================================
-// CONSULTA 4 — Alertas criticas (server-side pagination)
+// CONSULTA 4 — Alertas criticas (client-side pagination + filtering)
 // =========================================================
 async function buscarAlertas(page = 1) {
   const fc      = document.getElementById('u-fc').value;
@@ -394,54 +446,81 @@ async function buscarAlertas(page = 1) {
 
   try {
     const { data: alertas, pagination } = await apiFetch(
-      `/alertas?fc=${fc}&glucosa=${glucosa}&spo2=${spo2}&pa=${pa}&page=${page}&per_page=${pag.alertas.perPage}`
+      `/alertas?fc=${fc}&glucosa=${glucosa}&spo2=${spo2}&pa=${pa}&page=1&per_page=1000`
     );
 
+    pag.alertas.fullData = alertas;
+
     const badge = document.getElementById('alertas-badge');
-    if (pagination.total > 0) {
-      badge.textContent = pagination.total;
+    if (alertas.length > 0) {
+      badge.textContent = alertas.length;
       badge.hidden = false;
     } else {
       badge.hidden = true;
     }
 
-    if (!pagination || pagination.total === 0) {
-      resultado.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">&#x2705;</div>
-          <div>Sin alertas activas. Todos los valores estan dentro de los umbrales.</div>
-        </div>`;
-      return;
-    }
-
-    resultado.innerHTML = `
-      <p class="count-label">${pagination.total} alerta(s) activa(s)</p>
-      <div class="alerts-list">
-        ${alertas.map(a => {
-          const sensor = labelSensor(a.sensor);
-          const dir    = a.direccion === 'mayor' ? 'supera' : 'esta por debajo de';
-          return `
-            <div class="alert-card">
-              <div class="alert-icon">${iconoSensor(a.sensor)}</div>
-              <div class="alert-body">
-                <div class="alert-patient">${a.nombre}</div>
-                <div class="alert-detail">
-                  ${a.paciente_id} &middot; ${a.condicion ?? '—'}<br>
-                  <span class="text-red">${sensor} ${dir} el umbral de ${a.umbral}</span><br>
-                  <span class="text-muted">Medico: ${a.medico_id} &middot; ${formatFechaHora(a.timestamp)}</span>
-                </div>
-              </div>
-              <div class="alert-value">
-                <span class="val">${a.valor}</span>
-                <span class="unit">${a.unidad}</span>
-                <span class="lim">umbral: ${a.umbral}</span>
-              </div>
-            </div>`;
-        }).join('')}
-      </div>
-      <div id="a-pagination"></div>`;
-    renderPagination('a-pagination', pagination, (p) => buscarAlertas(p));
+    renderAlertasPage();
   } catch (e) { resultado.innerHTML = errorHTML(e.message); }
+}
+
+function renderAlertasPage() {
+  const resultado = document.getElementById('a-result');
+  const d = pag.alertas;
+  const page = d.page;
+
+  const checked = [...document.querySelectorAll('.a-sensor-check:checked')].map(cb => cb.value);
+  const alertas = checked.length
+    ? d.fullData.filter(a => checked.includes(a.sensor))
+    : d.fullData;
+
+  const badge = document.getElementById('alertas-badge');
+  if (d.fullData.length > 0) {
+    badge.textContent = d.fullData.length;
+    badge.hidden = false;
+  } else {
+    badge.hidden = true;
+  }
+
+  if (!alertas.length) {
+    resultado.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">&#x2705;</div>
+        <div>Sin alertas para los sensores seleccionados.</div>
+      </div>`;
+    return;
+  }
+
+  const meta = pagMeta(alertas.length, page, d.perPage);
+  const pageData = pagSlice(alertas, page, d.perPage);
+  const globalOffset = (page - 1) * d.perPage;
+
+  resultado.innerHTML = `
+    <p class="count-label">${alertas.length} alerta(s) de ${d.fullData.length} total</p>
+    <div class="alerts-list">
+      ${pageData.map((a, i) => {
+        const sensor = labelSensor(a.sensor);
+        const dir    = a.direccion === 'mayor' ? 'supera' : 'esta por debajo de';
+        return `
+          <div class="alert-card">
+            <div class="alert-icon">${iconoSensor(a.sensor)}</div>
+            <div class="alert-body">
+              <div class="alert-patient">${a.nombre}</div>
+              <div class="alert-detail">
+                ${a.paciente_id} &middot; ${a.condicion ?? '—'}<br>
+                <span class="text-red">${sensor} ${dir} el umbral de ${a.umbral}</span><br>
+                <span class="text-muted">Medico: ${a.medico_id} &middot; ${formatFechaHora(a.timestamp)}</span>
+              </div>
+            </div>
+            <div class="alert-value">
+              <span class="val">${a.valor}</span>
+              <span class="unit">${a.unidad}</span>
+              <span class="lim">umbral: ${a.umbral}</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+    <div id="a-pagination"></div>`;
+  renderPagination('a-pagination', meta, (p) => { d.page = p; renderAlertasPage(); });
 }
 
 // =========================================================
@@ -523,11 +602,12 @@ async function buscarRedReferidos() {
 async function buscarSaludPaciente(page = 1) {
   const pacienteId = document.getElementById('s-paciente').value;
   const n          = document.getElementById('s-cantidad').value;
+  const filtro     = document.getElementById('s-sensor').value;
   if (!pacienteId) return alertar('Selecciona un paciente.');
 
   const resultado = document.getElementById('s-result');
 
-  if (pag.salud.fullData.length && pag.salud._patient === pacienteId && pag.salud._n === n && page !== 1) {
+  if (pag.salud.fullData.length && pag.salud._patient === pacienteId && pag.salud._n === n && pag.salud._filter === filtro && page !== 1) {
     pag.salud.page = page;
     renderSaludPage();
     return;
@@ -543,6 +623,7 @@ async function buscarSaludPaciente(page = 1) {
     pag.salud.paciente = paciente;
     pag.salud._patient = pacienteId;
     pag.salud._n = n;
+    pag.salud._filter = filtro;
     pag.salud.page = 1;
 
     if (!lecturas.length) {
@@ -557,12 +638,20 @@ function renderSaludPage() {
   const resultado = document.getElementById('s-result');
   const d = pag.salud;
   const page = d.page;
-  const lecturas = d.fullData;
+  const filtro = d._filter || document.getElementById('s-sensor').value;
+  const lecturas = filtro
+    ? d.fullData.filter(l => l.tipo_sensor === filtro)
+    : d.fullData;
   const paciente = d.paciente;
   const meta = pagMeta(lecturas.length, page, d.perPage);
   const pageData = pagSlice(lecturas, page, d.perPage);
   const globalOffset = (page - 1) * d.perPage;
   const criticos = lecturas.filter(l => l.critico).length;
+
+  if (!lecturas.length) {
+    resultado.innerHTML = sinResultados('Sin lecturas para este sensor.');
+    return;
+  }
 
   resultado.innerHTML = `
     <div class="salud-header">
@@ -691,10 +780,10 @@ function toggleAutoRefreshAlertas() {
   if (toggle.checked) {
     alertasCountdown = 30;
     countdownEl.textContent = `Actualizacion en ${alertasCountdown}s`;
-    buscarAlertas(1);
+    buscarAlertas(pag.alertas.page || 1);
     alertasAutoRefreshInterval = setInterval(() => {
       alertasCountdown = 30;
-      buscarAlertas(pag.alertas.page);
+      buscarAlertas(pag.alertas.page || 1);
     }, 30000);
     alertasCountdownInterval = setInterval(() => {
       alertasCountdown--;
