@@ -26,10 +26,10 @@ net start MongoDB
 # O usar MongoDB Atlas: copiar la URI en un archivo .env (ver Configuracion)
 
 # 3. Poblar la base de datos (genera ~260k documentos)
-python ingest_vitalcore.py
+python backend/ingest_vitalcore.py
 
 # 4. Levantar el servidor
-python server.py
+python backend/server.py
 # Abrir http://localhost:5000
 ```
 
