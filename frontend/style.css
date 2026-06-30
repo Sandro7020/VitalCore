@@ -394,12 +394,12 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
   text-transform: uppercase;
   letter-spacing: .07em;
   color: var(--text-muted);
-  margin-bottom: 1rem;
 }
 .umbrales-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
+  margin-top: 1rem;
   margin-bottom: 1.25rem;
 }
 .umbral-item label { font-size: .8rem; color: var(--text-soft); display: block; margin-bottom: .35rem; }
@@ -407,6 +407,56 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
 .umbral-input-row { display: flex; align-items: center; gap: .4rem; }
 .dir-label { color: var(--red); font-weight: 700; font-size: 1rem; flex-shrink: 0; }
 .umbral-input-row input { max-width: 100px; }
+
+.sensor-filter-group {
+  margin-top: 1rem;
+  margin-bottom: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-soft);
+}
+.sensor-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-top: .5rem;
+}
+.sensor-check {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.sensor-check input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.sensor-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+.toggle-sensors-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .3rem .7rem;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.toggle-sensors-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text);
+  border-color: var(--primary);
+}
 
 .alerts-list { display: flex; flex-direction: column; gap: .75rem; }
 
@@ -661,3 +711,66 @@ tbody td { padding: .75rem 1rem; color: var(--text); vertical-align: top; }
    RENDIMIENTO
    ========================================================= */
 .rendimiento-stats { display: flex; gap: .5rem; align-items: center; }
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  margin-top: 1.5rem;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin-right: .75rem;
+  white-space: nowrap;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 .6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+  user-select: none;
+}
+
+.pagination-btn:hover:not(:disabled):not(.active) {
+  background: var(--bg-elevated);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pagination-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.pagination-btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.pagination-ellipsis {
+  color: var(--text-muted);
+  padding: 0 .15rem;
+  font-size: .85rem;
+  user-select: none;
+}

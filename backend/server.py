@@ -122,8 +122,20 @@ def create_app(db):
     @app.route("/api/pacientes")
     def listar_pacientes():
         try:
-            docs = patient_repo.find_all()
-            return ok(docs)
+            page = request.args.get("page", type=int)
+            per_page = request.args.get("per_page", type=int)
+
+            if page and per_page:
+                total = patient_repo.count_all()
+                pages = max(1, (total + per_page - 1) // per_page)
+                docs = patient_repo.find_all_paginated(page, per_page)
+                return ok({
+                    "data": docs,
+                    "pagination": {"page": page, "per_page": per_page, "total": total, "pages": pages},
+                })
+            else:
+                docs = patient_repo.find_all()
+                return ok(docs)
         except Exception as e:
             return err(str(e))
 
@@ -169,11 +181,28 @@ def create_app(db):
     @app.route("/api/historial/<paciente_id>")
     def historial(paciente_id):
         try:
-            consultas = consulta_repo.find_by_paciente(paciente_id)
+            page = request.args.get("page", type=int)
+            per_page = request.args.get("per_page", type=int)
+
+            if page and per_page:
+                total = consulta_repo.count_by_paciente(paciente_id)
+                pages = max(1, (total + per_page - 1) // per_page)
+                consultas = consulta_repo.find_by_paciente_paginated(paciente_id, page, per_page)
+            else:
+                consultas = consulta_repo.find_by_paciente(paciente_id)
+                total = len(consultas)
+                pages = 1
+
             medico_ids = list({c["medico_id"] for c in consultas})
             medicos = {m["_id"]: m for m in doctor_repo.collection.find({"_id": {"$in": medico_ids}})}
             for c in consultas:
                 c["medico"] = medicos.get(c["medico_id"])
+
+            if page and per_page:
+                return ok({
+                    "data": consultas,
+                    "pagination": {"page": page, "per_page": per_page, "total": total, "pages": pages},
+                })
             return ok(consultas)
         except Exception as e:
             return err(str(e))
@@ -186,14 +215,22 @@ def create_app(db):
         sensor = request.args.get("sensor", "glucosa")
         desde  = request.args.get("desde")
         hasta  = request.args.get("hasta")
+        page   = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 20, type=int)
 
         if not desde or not hasta:
             return err("Parametros 'desde' y 'hasta' requeridos (YYYY-MM-DD)", 400)
 
         try:
-            lecturas = telemetria_repo.find_by_range(paciente_id, sensor, desde, hasta)
-            stats = TelemetriaRepository.compute_stats(lecturas)
-            return ok({"lecturas": lecturas, "estadisticas": stats})
+            total = telemetria_repo.count_by_range(paciente_id, sensor, desde, hasta)
+            pages = max(1, (total + per_page - 1) // per_page)
+            lecturas = telemetria_repo.find_by_range_paginated(paciente_id, sensor, desde, hasta, page, per_page)
+            stats = telemetria_repo.stats_by_range(paciente_id, sensor, desde, hasta)
+            return ok({
+                "lecturas": lecturas,
+                "estadisticas": stats,
+                "pagination": {"page": page, "per_page": per_page, "total": total, "pages": pages},
+            })
         except Exception as e:
             return err(str(e))
 
@@ -215,6 +252,9 @@ def create_app(db):
     def alertas():
         """Alertas cuando un vital supera el umbral crítico.
         Usa AlertEvaluator como fuente única de verdad para dirección y umbrales."""
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 20, type=int)
+
         try:
             alertas_result = []
             # Iterate over all sensors in the evaluator
@@ -251,7 +291,16 @@ def create_app(db):
                         alertas_result.append(alert)
             
             alertas_result.sort(key=lambda x: x.get("timestamp") or "", reverse=True)
-            return ok(alertas_result)
+
+            total = len(alertas_result)
+            pages = max(1, (total + per_page - 1) // per_page)
+            start = (page - 1) * per_page
+            end = start + per_page
+
+            return ok({
+                "data": alertas_result[start:end],
+                "pagination": {"page": page, "per_page": per_page, "total": total, "pages": pages},
+            })
         except Exception as e:
             return err(str(e))
 
